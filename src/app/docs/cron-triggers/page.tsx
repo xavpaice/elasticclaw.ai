@@ -179,7 +179,7 @@ elasticclaw workflow logs dependency-maintenance <run-id> --workspace engineerin
         <CodeBlock lang="yaml">{`schema_version: 2
 name: dependency-maintenance
 enabled: true
-initial_state: working
+initial_state: update_dependencies
 
 trigger:
   cron:
@@ -189,8 +189,8 @@ trigger:
     timeout: 2h
 
 states:
-  working:
-    description: Inspect manifests and apply safe updates.
+  update_dependencies:
+    description: Inspect manifests, apply safe updates, and open a grouped PR if needed.
     phase: build
     on_enter:
       effects:
@@ -213,7 +213,7 @@ states:
 
 transitions:
   dependency_pr_opened:
-    from: working
+    from: update_dependencies
     on: pull_request.verified_open
     when:
       pull_request:
@@ -222,21 +222,32 @@ transitions:
 
 commands:
   skip:
-    from: [working]
+    from: [update_dependencies]
     to: no_updates
     require_reason: false`}</CodeBlock>
         <p className="text-sm text-zinc-400 mt-2">
           <code>overlap_policy</code> supports <code>skip</code> (default) and{" "}
           <code>parallel</code>. v1 <code>queue</code> is converted to{" "}
-          <code>skip</code> with a warning. The example above can complete via a
-          verified PR or the <code>skip</code> command when no updates are
-          needed. Any enabled v2 cron workflow can also be triggered manually:
+          <code>skip</code> with a warning. In v2, state descriptions are
+          metadata; the real work starts via <code>on_enter.effects</code>. The
+          example above can complete via a verified PR or the <code>skip</code>{" "}
+          command when no updates are needed. Invoke a command from the CLI or
+          API:
         </p>
-        <CodeBlock lang="bash">{`elasticclaw workflow trigger dependency-maintenance --workspace engineering --cron
+        <CodeBlock lang="bash">{`# Trigger a cron workflow manually
+elasticclaw workflow trigger dependency-maintenance --workspace engineering --cron
 
 # Or via the API
 curl -X POST \\
   "$ELASTICCLAW_URL/api/workspaces/engineering/workflows/dependency-maintenance/cron/trigger" \\
+  -H "Authorization: Bearer $ELASTICCLAW_TOKEN"
+
+# Invoke the skip command while the run is in update_dependencies
+elasticclaw workflow command dependency-maintenance skip --workspace engineering
+
+# Or via the API
+curl -X POST \\
+  "$ELASTICCLAW_URL/api/workspaces/engineering/workflows/dependency-maintenance/commands/skip" \\
   -H "Authorization: Bearer $ELASTICCLAW_TOKEN"`}</CodeBlock>
         <p className="text-sm text-zinc-400 mt-2">
           Cron run history (including skipped ticks) is available from{" "}

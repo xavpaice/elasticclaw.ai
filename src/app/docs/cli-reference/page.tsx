@@ -144,7 +144,10 @@ elasticclaw workflow convert ./wf.yaml --workspace ./ws -o wf.v2.yaml
 elasticclaw workflow convert ./github-issue.yaml --in-place
 
 # Trigger a v2 cron workflow manually
-elasticclaw workflow trigger dependency-maintenance --workspace engineering --cron`}</CodeBlock>
+elasticclaw workflow trigger dependency-maintenance --workspace engineering --cron
+
+# Invoke a v2 workflow command
+elasticclaw workflow command dependency-maintenance skip --workspace engineering`}</CodeBlock>
         <p className="text-sm text-zinc-400 mt-2">
           <code>workflow show</code> prints the raw workflow YAML as it is stored
           on the server.
