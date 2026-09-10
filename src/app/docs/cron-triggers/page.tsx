@@ -192,18 +192,23 @@ states:
   working:
     description: Inspect manifests and apply safe updates.
     phase: build
+    on_enter:
+      effects:
+        - dependency.update:
+            ecosystems: [go, npm]
+            include_major: false
   complete:
     phase: done
     terminal: true
 
 transitions:
-  start:
+  dependency_pr_opened:
     from: working
-    to: complete
-    effects:
-      - dependency.update:
-          ecosystems: [go, npm]
-          include_major: false`}</CodeBlock>
+    on: pull_request.verified_open
+    when:
+      pull_request:
+        state: open
+    to: complete`}</CodeBlock>
         <p className="text-sm text-zinc-400 mt-2">
           <code>overlap_policy</code> supports <code>skip</code> (default) and{" "}
           <code>parallel</code>. v1 <code>queue</code> is converted to{" "}
