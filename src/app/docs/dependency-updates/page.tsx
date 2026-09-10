@@ -250,7 +250,12 @@ stages:
             <code>permissions: write</code> in the workspace.
           </li>
         </ul>
-        <CodeBlock lang="yaml">{`states:
+        <CodeBlock lang="yaml">{`schema_version: 2
+name: dependency-update
+enabled: true
+initial_state: update_dependencies
+
+states:
   update_dependencies:
     description: Apply safe dependency updates.
     phase: build
@@ -269,12 +274,17 @@ stages:
             timeout: 30m
         - agent.task:
             prompt: |
-              Dependency updates applied. Review the changed files, run tests,
-              and open one grouped PR. The workflow advances automatically
-              when the source-control connection reports the new PR.
+              If dependency.update produced changes, review them, run tests,
+              commit, and open one grouped PR. If no updates were needed,
+              finish without opening a PR.
   pr_open:
     description: Grouped dependency update PR is open.
     phase: pr
+    terminal: true
+  no_updates:
+    description: No dependency updates were necessary.
+    phase: done
+    terminal: true
 
 transitions:
   dependency_pr_opened:
@@ -283,7 +293,13 @@ transitions:
     when:
       pull_request:
         state: open
-    to: pr_open`}</CodeBlock>
+    to: pr_open
+
+commands:
+  skip:
+    from: [update_dependencies]
+    to: no_updates
+    require_reason: false`}</CodeBlock>
         <p className="text-sm text-zinc-400 mt-2">
           When the effect completes, the hub writes protected facts under{" "}
           <code>exec.dependency_update.*</code> (for example{" "}
@@ -292,7 +308,8 @@ transitions:
           <code>exec.dependency_update.commands</code>). Transitions can read
           these facts but cannot write them. Chat markers such as{" "}
           <code>[DONE]</code> are not control signals in v2; advancement is
-          driven by verified source-control events and facts.
+          driven by verified source-control events and facts. Use the{" "}
+          <code>skip</code> command when no updates are needed.
         </p>
       </Section>
 

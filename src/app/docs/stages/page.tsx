@@ -284,7 +284,12 @@ export default function StagesPage() {
           <code>from</code>, <code>on</code> event, <code>when</code> predicate,
           and <code>to</code>.
         </p>
-        <CodeBlock lang="yaml">{`states:
+        <CodeBlock lang="yaml">{`schema_version: 2
+name: pr-tracker
+enabled: true
+initial_state: implementing
+
+states:
   implementing:
     description: Work is in progress.
     phase: build
@@ -302,7 +307,13 @@ transitions:
     when:
       pull_request:
         state: open
-    to: awaiting_ci`}</CodeBlock>
+    to: awaiting_ci
+
+commands:
+  finish:
+    from: [awaiting_ci]
+    to: completed
+    require_reason: false`}</CodeBlock>
         <p className="text-sm text-zinc-400 mt-2">
           v2 also adds <code>commands</code> for operator actions,{" "}
           <code>events</code> clauses for provider-specific signals, and{" "}
