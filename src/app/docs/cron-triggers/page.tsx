@@ -133,34 +133,23 @@ stages:
 
       <Section title="Manual runs">
         <p>
-          Cron workflows can be triggered manually from the API when the cron
+          Cron workflows can be triggered manually from the CLI when the cron
           scheduler is available. Manual runs use the same workflow definition
           and run history as scheduled runs.
         </p>
-        <CodeBlock lang="bash">{`curl -X POST \\
-  "$ELASTICCLAW_URL/api/workspaces/engineering/workflows/dependency-maintenance/cron/trigger" \\
-  -H "Authorization: Bearer $ELASTICCLAW_TOKEN"`}</CodeBlock>
+        <CodeBlock lang="bash">{`elasticclaw workflow trigger dependency-maintenance --workspace engineering --cron`}</CodeBlock>
         <Note>
           Disabled workflows cannot be triggered by cron. Set{" "}
           <code>enabled: false</code> to pause a scheduled workflow.
         </Note>
       </Section>
 
-      <Section title="Run history and next run">
+      <Section title="Run history">
         <p>
           ElasticClaw records cron workflow runs with status, result, claw ID,
           timestamps, and run context.
         </p>
-        <CodeBlock lang="bash">{`curl \\
-  "$ELASTICCLAW_URL/api/workspaces/engineering/workflows/dependency-maintenance/cron/runs?limit=20" \\
-  -H "Authorization: Bearer $ELASTICCLAW_TOKEN"
-
-curl \\
-  "$ELASTICCLAW_URL/api/workspaces/engineering/workflows/dependency-maintenance/cron/next" \\
-  -H "Authorization: Bearer $ELASTICCLAW_TOKEN"
-
-# Or use the CLI
-elasticclaw workflow runs dependency-maintenance --workspace engineering --limit 20
+        <CodeBlock lang="bash">{`elasticclaw workflow runs dependency-maintenance --workspace engineering --limit 20
 elasticclaw workflow logs dependency-maintenance <run-id> --workspace engineering`}</CodeBlock>
         <p>
           Run statuses include <code>pending</code>, <code>running</code>,
@@ -231,30 +220,16 @@ commands:
           <code>skip</code> with a warning. In v2, state descriptions are
           metadata; the real work starts via <code>on_enter.effects</code>. The
           example above can complete via a verified PR or the <code>skip</code>{" "}
-          command when no updates are needed. Invoke a command from the CLI or
-          API:
+          command when no updates are needed. Invoke the command from the CLI:
         </p>
         <CodeBlock lang="bash">{`# Trigger a cron workflow manually
 elasticclaw workflow trigger dependency-maintenance --workspace engineering --cron
 
-# Or via the API
-curl -X POST \\
-  "$ELASTICCLAW_URL/api/workspaces/engineering/workflows/dependency-maintenance/cron/trigger" \\
-  -H "Authorization: Bearer $ELASTICCLAW_TOKEN"
-
 # Invoke the skip command while the run is in update_dependencies
 elasticclaw workflow command dependency-maintenance skip --workspace engineering
 
-# Or via the API
-curl -X POST \\
-  "$ELASTICCLAW_URL/api/workspaces/engineering/workflows/dependency-maintenance/commands/skip" \\
-  -H "Authorization: Bearer $ELASTICCLAW_TOKEN"`}</CodeBlock>
-        <p className="text-sm text-zinc-400 mt-2">
-          Cron run history (including skipped ticks) is available from{" "}
-          <code>/api/workspaces/&lt;ws&gt;/workflows/&lt;wf&gt;/cron/runs</code>{" "}
-          or with{" "}
-          <code>elasticclaw workflow runs dependency-maintenance --workspace engineering --cron</code>.
-        </p>
+# View cron run history (including skipped ticks)
+elasticclaw workflow runs dependency-maintenance --workspace engineering --cron`}</CodeBlock>
       </Section>
 
       <Section title="Recommended patterns">
