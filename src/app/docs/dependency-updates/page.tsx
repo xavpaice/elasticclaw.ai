@@ -294,6 +294,14 @@ transitions:
       pull_request:
         state: open
     to: pr_open
+  no_updates_found:
+    from: update_dependencies
+    on: exec.dependency_update.completed
+    when:
+      exec.dependency_update:
+        files_changed:
+          equals: 0
+    to: no_updates
 
 commands:
   skip:
@@ -308,8 +316,10 @@ commands:
           <code>exec.dependency_update.commands</code>). Transitions can read
           these facts but cannot write them. Chat markers such as{" "}
           <code>[DONE]</code> are not control signals in v2; advancement is
-          driven by verified source-control events and facts. Use the{" "}
-          <code>skip</code> command when no updates are needed.
+          driven by verified source-control events and facts. When no updates
+          are found, the workflow transitions automatically based on the{" "}
+          <code>exec.dependency_update.files_changed</code> fact. The{" "}
+          <code>skip</code> command provides an operator override.
         </p>
       </Section>
 

@@ -299,6 +299,9 @@ states:
   completed:
     phase: done
     terminal: true
+  cancelled:
+    phase: done
+    terminal: true
 
 transitions:
   pr_opened:
@@ -310,9 +313,9 @@ transitions:
     to: awaiting_ci
 
 commands:
-  finish:
+  cancel:
     from: [awaiting_ci]
-    to: completed
+    to: cancelled
     require_reason: false`}</CodeBlock>
         <p className="text-sm text-zinc-400 mt-2">
           v2 also adds <code>commands</code> for operator actions,{" "}
