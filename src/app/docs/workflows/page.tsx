@@ -721,8 +721,15 @@ initial_state: implementing
 
 states:
   implementing:
-    description: Work is in progress.
+    description: Implement the change and open a verified pull request.
     phase: build
+    on_enter:
+      effects:
+        - agent.task:
+            prompt: |
+              Implement the requested change in the workspace, commit the
+              result, and open a pull request. The workflow advances when the
+              source-control connection reports the verified PR.
   awaiting_ci:
     description: A verified pull request exists and CI is unresolved.
     phase: pr
@@ -730,8 +737,15 @@ states:
       pull_request:
         state: open
   fixing:
-    description: Verified evidence indicates more work is required.
+    description: Address verified CI or review failures and push fixes.
     phase: build
+    on_enter:
+      effects:
+        - agent.task:
+            prompt: |
+              Inspect the CI or review failures for the current PR, apply
+              fixes, commit, and push to the PR branch. The workflow advances
+              when the PR head changes.
   awaiting_review:
     description: CI policy is satisfied.
     phase: review
@@ -848,6 +862,16 @@ events:
         effects:
           - agent.task:
               prompt: Investigate the Depot CI failure.`}</CodeBlock>
+
+        <p className="text-sm text-zinc-400 mt-2">
+          The workflow is triggered per delivery item (for example, a linked
+          issue or a manual start). Active build states such as{" "}
+          <code>implementing</code> and <code>fixing</code> start durable{" "}
+          <code>agent.task</code> effects via <code>on_enter</code>; waiting
+          states such as <code>awaiting_ci</code>, <code>awaiting_review</code>,
+          and <code>ready_to_merge</code> advance only on verified external
+          events.
+        </p>
 
         <h3 className="text-base font-semibold text-white pt-2">
           Core v2 concepts
