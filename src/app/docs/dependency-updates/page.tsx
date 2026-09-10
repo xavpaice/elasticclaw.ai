@@ -270,15 +270,29 @@ stages:
         - agent.task:
             prompt: |
               Dependency updates applied. Review the changed files, run tests,
-              and open one grouped PR. Say [DONE] when the PR is open or no
-              updates are needed.`}</CodeBlock>
+              and open one grouped PR. The workflow advances automatically
+              when the source-control connection reports the new PR.
+  pr_open:
+    description: Grouped dependency update PR is open.
+    phase: pr
+
+transitions:
+  dependency_pr_opened:
+    from: update_dependencies
+    on: pull_request.verified_open
+    when:
+      pull_request:
+        state: open
+    to: pr_open`}</CodeBlock>
         <p className="text-sm text-zinc-400 mt-2">
           When the effect completes, the hub writes protected facts under{" "}
           <code>exec.dependency_update.*</code> (for example{" "}
           <code>exec.dependency_update.files_changed</code>,{" "}
           <code>exec.dependency_update.updates</code>, and{" "}
           <code>exec.dependency_update.commands</code>). Transitions can read
-          these facts but cannot write them.
+          these facts but cannot write them. Chat markers such as{" "}
+          <code>[DONE]</code> are not control signals in v2; advancement is
+          driven by verified source-control events and facts.
         </p>
       </Section>
 
