@@ -197,7 +197,17 @@ states:
         - dependency.update:
             ecosystems: [go, npm]
             include_major: false
-  complete:
+        - agent.task:
+            prompt: |
+              If dependency.update produced changes, commit them, run tests,
+              and open one grouped PR. If no updates were needed, finish
+              without opening a PR.
+  pr_open:
+    description: Grouped dependency update PR is open.
+    phase: pr
+    terminal: true
+  no_updates:
+    description: No dependency updates were necessary.
     phase: done
     terminal: true
 
@@ -208,12 +218,19 @@ transitions:
     when:
       pull_request:
         state: open
-    to: complete`}</CodeBlock>
+    to: pr_open
+
+commands:
+  skip:
+    from: [working]
+    to: no_updates
+    require_reason: false`}</CodeBlock>
         <p className="text-sm text-zinc-400 mt-2">
           <code>overlap_policy</code> supports <code>skip</code> (default) and{" "}
           <code>parallel</code>. v1 <code>queue</code> is converted to{" "}
-          <code>skip</code> with a warning. Any enabled v2 cron workflow can also
-          be triggered manually:
+          <code>skip</code> with a warning. The example above can complete via a
+          verified PR or the <code>skip</code> command when no updates are
+          needed. Any enabled v2 cron workflow can also be triggered manually:
         </p>
         <CodeBlock lang="bash">{`elasticclaw workflow trigger dependency-maintenance --workspace engineering --cron
 
