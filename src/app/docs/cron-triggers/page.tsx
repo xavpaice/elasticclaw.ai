@@ -169,6 +169,61 @@ elasticclaw workflow logs dependency-maintenance <run-id> --workspace engineerin
         </p>
       </Section>
 
+      <Section id="v2-cron" title="Cron triggers in v2 workflows">
+        <p>
+          v2 workflows declare cron triggers under a top-level{" "}
+          <code>trigger</code> block. The syntax is similar to v1, but the
+          workflow must be <code>enabled: true</code> and uses v2 states and
+          transitions instead of stages.
+        </p>
+        <CodeBlock lang="yaml">{`schema_version: 2
+name: dependency-maintenance
+enabled: true
+initial_state: working
+
+trigger:
+  cron:
+    schedule: "0 9 * * 1"
+    timezone: "America/Chicago"
+    overlap_policy: skip
+    timeout: 2h
+
+states:
+  working:
+    description: Inspect manifests and apply safe updates.
+    phase: build
+  complete:
+    phase: done
+    terminal: true
+
+transitions:
+  start:
+    from: working
+    to: complete
+    effects:
+      - dependency.update:
+          ecosystems: [go, npm]
+          include_major: false`}</CodeBlock>
+        <p className="text-sm text-zinc-400 mt-2">
+          <code>overlap_policy</code> supports <code>skip</code> (default) and{" "}
+          <code>parallel</code>. v1 <code>queue</code> is converted to{" "}
+          <code>skip</code> with a warning. Any enabled v2 cron workflow can also
+          be triggered manually:
+        </p>
+        <CodeBlock lang="bash">{`elasticclaw workflow trigger dependency-maintenance --workspace engineering --cron
+
+# Or via the API
+curl -X POST \\
+  "$ELASTICCLAW_URL/api/workspaces/engineering/workflows/dependency-maintenance/cron/trigger" \\
+  -H "Authorization: Bearer $ELASTICCLAW_TOKEN"`}</CodeBlock>
+        <p className="text-sm text-zinc-400 mt-2">
+          Cron run history (including skipped ticks) is available from{" "}
+          <code>/api/workspaces/&lt;ws&gt;/workflows/&lt;wf&gt;/cron/runs</code>{" "}
+          or with{" "}
+          <code>elasticclaw workflow runs dependency-maintenance --workspace engineering --cron</code>.
+        </p>
+      </Section>
+
       <Section title="Recommended patterns">
         <div className="space-y-3 text-sm text-zinc-400">
           <p>
